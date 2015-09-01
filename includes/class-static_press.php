@@ -260,7 +260,12 @@ CREATE TABLE `{$this->url_table}` (
     return urldecode(
       preg_match('/\.[^\.]+?$/i', $permalink)
       ? $permalink
-      : trailingslashit(trim($permalink)) . 'index.html');
+      : untrailingslashit(trim($permalink)) . '.html');
+
+    // return urldecode(
+    //   preg_match('/\.[^\.]+?$/i', $permalink)
+    //   ? $permalink
+    //   : trailingslashit(trim($permalink)) . 'index.html');
   }
 
   private function get_site_url(){
@@ -390,6 +395,10 @@ CREATE TABLE `{$this->url_table}` (
           if ($create_404 || $http_code == 200) {
             $content = apply_filters('StaticPress::put_content', $content['body'], $http_code);
             $this->make_subdirectories($file_dest);
+
+            // var_dump($file_dest);
+            // die('FILE DEST');
+
             file_put_contents($file_dest, $content);
             $file_date = date('Y-m-d h:i:s', filemtime($file_dest));
           }
@@ -655,12 +664,12 @@ CREATE TABLE `{$this->url_table}` (
 
     $this->post_types = "'".implode("','",$pts)."'";
     $urls = array();
-    $urls = array_merge($urls, $this->front_page_url());
+    // $urls = array_merge($urls, $this->front_page_url());
     $urls = array_merge($urls, $this->single_url());
-    $urls = array_merge($urls, $this->terms_url());
-    $urls = array_merge($urls, $this->author_url());
+    // $urls = array_merge($urls, $this->terms_url());
+    // $urls = array_merge($urls, $this->author_url());
     $urls = array_merge($urls, $this->static_files_url());
-    $urls = array_merge($urls, $this->seo_url());
+    // $urls = array_merge($urls, $this->seo_url());
     return $urls;
   }
 
@@ -710,8 +719,8 @@ CREATE TABLE `{$this->url_table}` (
     $urls = array();
     $site_url = $this->get_site_url();
     $urls[] = array(
-      'type' => $url_type,
-      'url' => apply_filters('StaticPress::get_url', $site_url),
+      'type'          => $url_type,
+      'url'           => apply_filters('StaticPress::get_url', $site_url),
       'last_modified' => date('Y-m-d h:i:s'),
       );
     return $urls;
@@ -741,11 +750,11 @@ select ID, post_type, post_content, post_status, post_modified
       if ( $splite = preg_split("#<!--nextpage-->#", $post->post_content) )
         $count = count($splite);
       $urls[] = array(
-        'type' => $url_type,
-        'url' => apply_filters('StaticPress::get_url', $permalink),
-        'object_id' => intval($post_id),
-        'object_type' =>  $post->post_type,
-        'pages' => $count,
+        'type'          => $url_type,
+        'url'           => apply_filters('StaticPress::get_url', $permalink),
+        'object_id'     => intval($post_id),
+        'object_type'   =>  $post->post_type,
+        'pages'         => $count,
         'last_modified' => $modified,
         );
     }
@@ -796,12 +805,12 @@ select MAX(P.post_modified) as last_modified, count(P.ID) as count
           continue;
         list($modified, $page_count) = $this->get_term_info($term_id);
         $urls[] = array(
-          'type' => $url_type,
-          'url' => apply_filters('StaticPress::get_url', $termlink),
-          'object_id' => intval($term_id),
-          'object_type' => $term->taxonomy,
-          'parent' => $term->parent,
-          'pages' => $page_count,
+          'type'          => $url_type,
+          'url'           => apply_filters('StaticPress::get_url', $termlink),
+          'object_id'     => intval($term_id),
+          'object_type'   => $term->taxonomy,
+          'parent'        => $term->parent,
+          'pages'         => $page_count,
           'last_modified' => $modified,
           );
 
@@ -818,12 +827,12 @@ select MAX(P.post_modified) as last_modified, count(P.ID) as count
             continue;
           list($modified, $page_count) = $this->get_term_info($term_id);
           $urls[] = array(
-            'type' => $url_type,
-            'url' => apply_filters('StaticPress::get_url', $termlink),
-            'object_id' => intval($term_id),
-            'object_type' => $term->taxonomy,
-            'parent' => $term->parent,
-            'pages' => $page_count,
+            'type'          => $url_type,
+            'url'           => apply_filters('StaticPress::get_url', $termlink),
+            'object_id'     => intval($term_id),
+            'object_type'   => $term->taxonomy,
+            'parent'        => $term->parent,
+            'pages'         => $page_count,
             'last_modified' => $modified,
             );
         }
@@ -859,10 +868,10 @@ SELECT DISTINCT post_author, COUNT(ID) AS count, MAX(post_modified) AS modified
       if (is_wp_error($authorlink))
         continue;
       $urls[] = array(
-        'type' => $url_type,
-        'url' => apply_filters('StaticPress::get_url', $authorlink),
-        'object_id' => intval($author_id),
-        'pages' => $page_count,
+        'type'          => $url_type,
+        'url'           => apply_filters('StaticPress::get_url', $authorlink),
+        'object_id'     => intval($author_id),
+        'pages'         => $page_count,
         'last_modified' => $modified,
         );
     }
